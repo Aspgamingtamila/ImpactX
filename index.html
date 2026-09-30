@@ -38,14 +38,14 @@
 
 <div id="sidebar">
     <h2>Landslide Susceptibility (Darjeeling)</h2>
-    <p style="font-size: 0.9rem; color: #444;">This is a preview of the Web GIS dashboard. Once the Earth Engine scripts finish downloading the data, the layers will appear here.</p>
+    <p style="font-size: 0.9rem; color: #444;">Interactive Web GIS dashboard displaying modeled landslide risk zones and input layers.</p>
     
     <div class="layer-control">
-        <label><input type="checkbox" checked disabled> Darjeeling Boundary</label><br>
-        <label><input type="checkbox" disabled> Digital Elevation Model (DEM)</label><br>
-        <label><input type="checkbox" disabled> Rainfall Anomaly (2025)</label><br>
-        <label><input type="checkbox" disabled> Vegetation Index (NDVI)</label><br>
-        <label><input type="checkbox" checked disabled> <b>Final Susceptibility Map</b></label>
+        <label><input type="checkbox" id="chkBoundary" checked> Darjeeling Boundary</label><br>
+        <label><input type="checkbox" id="chkDem"> Digital Elevation Model (DEM)</label><br>
+        <label><input type="checkbox" id="chkRain"> Rainfall Anomaly</label><br>
+        <label><input type="checkbox" id="chkNdvi"> Vegetation Index (NDVI)</label><br>
+        <label><input type="checkbox" id="chkRisk" checked> <b>Final Susceptibility Map</b></label>
     </div>
 
     <div class="legend">
@@ -58,7 +58,7 @@
     </div>
     
     <div class="note">
-        * Status: Waiting for GEE Authentication & Data Extraction to complete.
+        * Note: This is a simulated demo map for GitHub Pages presentation.
     </div>
 </div>
 
@@ -68,33 +68,66 @@
     // Initialize the map centered on Darjeeling
     var map = L.map('map').setView([27.0360, 88.2627], 10);
 
-    // Add CartoDB Positron basemap
+    // Add OpenStreetMap basemap
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
     }).addTo(map);
 
-    // Add a placeholder polygon for Darjeeling District roughly
-    var darjeelingBounds = [
-        [27.2, 87.9],
-        [27.2, 88.5],
-        [26.7, 88.5],
-        [26.7, 87.9]
-    ];
+    // 1. Darjeeling Boundary Layer
+    var darjeelingBounds = [[27.2, 87.9], [27.2, 88.5], [26.7, 88.5], [26.7, 87.9]];
+    var boundaryLayer = L.rectangle(darjeelingBounds, {
+        color: "#2c3e50", weight: 3, fill: false
+    });
+    boundaryLayer.addTo(map);
     
-    var boundary = L.rectangle(darjeelingBounds, {
-        color: "#2c3e50",
-        weight: 2,
-        fillColor: "#34495e",
-        fillOpacity: 0.1
-    }).addTo(map);
-    
-    // Add a marker for Darjeeling town
+    // 2. Simulated Input Layers
+    var demLayer = L.rectangle(darjeelingBounds, {color: 'none', fillColor: '#000000', fillOpacity: 0.6});
+    var rainLayer = L.rectangle(darjeelingBounds, {color: 'none', fillColor: '#0055ff', fillOpacity: 0.4});
+    var ndviLayer = L.rectangle(darjeelingBounds, {color: 'none', fillColor: '#00aa00', fillOpacity: 0.4});
+
+    // 3. Simulated Final Susceptibility Map (Risk Zones)
+    var riskLayer = L.layerGroup([
+        // Very Low Risk Base
+        L.rectangle(darjeelingBounds, {color: 'none', fillColor: '#1a9850', fillOpacity: 0.4}),
+        // Low Risk
+        L.circle([26.90, 88.35], {radius: 12000, color: 'none', fillColor: '#a6d96a', fillOpacity: 0.6}),
+        L.circle([27.15, 88.10], {radius: 10000, color: 'none', fillColor: '#a6d96a', fillOpacity: 0.6}),
+        // Moderate Risk
+        L.circle([27.08, 88.28], {radius: 8000, color: 'none', fillColor: '#fee08b', fillOpacity: 0.7}).bindPopup("<b>Risk Level:</b> Moderate"),
+        L.circle([26.95, 88.15], {radius: 7000, color: 'none', fillColor: '#fee08b', fillOpacity: 0.7}).bindPopup("<b>Risk Level:</b> Moderate"),
+        // High Risk
+        L.circle([27.02, 88.22], {radius: 5000, color: 'none', fillColor: '#f46d43', fillOpacity: 0.8}).bindPopup("<b>Risk Level:</b> High"),
+        // Very High Risk (Core steep areas)
+        L.circle([27.0460, 88.2627], {radius: 3000, color: 'none', fillColor: '#a50026', fillOpacity: 0.8}).bindPopup("<b>Risk Level:</b> Very High"),
+        L.circle([27.0600, 88.2500], {radius: 2000, color: 'none', fillColor: '#a50026', fillOpacity: 0.8}).bindPopup("<b>Risk Level:</b> Very High")
+    ]);
+    riskLayer.addTo(map);
+
+    // Marker for Darjeeling Town
     L.marker([27.0360, 88.2627]).addTo(map)
-        .bindPopup('<b>Darjeeling Town</b><br>Landslide mapping focus area.')
-        .openPopup();
+        .bindPopup('<b>Darjeeling Town</b><br>Landslide mapping focus area.');
         
-    map.fitBounds(boundary.getBounds());
+    map.fitBounds(boundaryLayer.getBounds());
+
+    // --- CHECKBOX LOGIC TO TOGGLE LAYERS ---
+    
+    function toggleLayer(checkboxId, layer) {
+        document.getElementById(checkboxId).addEventListener('change', function(e) {
+            if(e.target.checked) {
+                map.addLayer(layer);
+            } else {
+                map.removeLayer(layer);
+            }
+        });
+    }
+
+    toggleLayer('chkBoundary', boundaryLayer);
+    toggleLayer('chkDem', demLayer);
+    toggleLayer('chkRain', rainLayer);
+    toggleLayer('chkNdvi', ndviLayer);
+    toggleLayer('chkRisk', riskLayer);
+
 </script>
 
 </body>
